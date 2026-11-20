@@ -53,8 +53,11 @@ def file_lock(path: Path) -> Iterator[None]:
         else:
             import fcntl
 
-            fcntl.flock(stream.fileno(), fcntl.LOCK_EX)
+            flock = getattr(fcntl, "flock")  # noqa: B009
+            lock_exclusive = getattr(fcntl, "LOCK_EX")  # noqa: B009
+            lock_release = getattr(fcntl, "LOCK_UN")  # noqa: B009
+            flock(stream.fileno(), lock_exclusive)
             try:
                 yield
             finally:
-                fcntl.flock(stream.fileno(), fcntl.LOCK_UN)
+                flock(stream.fileno(), lock_release)

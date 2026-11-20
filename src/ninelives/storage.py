@@ -116,7 +116,10 @@ def safe_cache_dir(path: Path) -> Path:
     path.mkdir(parents=True, exist_ok=True, mode=0o700)
     if os.name == "posix":
         st = path.stat()
-        if st.st_uid != os.getuid():
+        getuid = getattr(os, "getuid", None)
+        if getuid is None:
+            raise RuntimeError("POSIX cache ownership checks require os.getuid")
+        if st.st_uid != getuid():
             raise PermissionError(f"Cache directory is not owned by current user: {path}")
         path.chmod(0o700)
     return path
