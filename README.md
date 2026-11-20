@@ -1,4 +1,9 @@
 # ninelives
+
+<p align="center">
+  <img src="assets/ninelives-logo.png" alt="ninelives cat logo" width="240">
+</p>
+
 Crash-resilient, resumable Python work with careful cache invalidation.
 
 **Your job can die eight times.**
