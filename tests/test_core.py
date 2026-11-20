@@ -370,6 +370,7 @@ def test_cache_strict_write_errors_and_cache_info(tmp_path, monkeypatch):
 
 
 def test_cache_configuration_and_fallback_paths(tmp_path, monkeypatch):
+    real_os = cache_module.os
     with pytest.raises(ValueError, match="serializer"):
         nl.cache(serializer="invalid")
     with pytest.raises(ValueError, match="ttl"):
@@ -390,17 +391,17 @@ def test_cache_configuration_and_fallback_paths(tmp_path, monkeypatch):
     monkeypatch.delenv("NINELIVES_DIR")
     monkeypatch.setenv("XDG_CACHE_HOME", str(tmp_path / "xdg"))
     monkeypatch.setattr(cache_module.sys, "platform", "linux")
+    monkeypatch.setattr(cache_module, "os", SimpleNamespace(name="posix", getenv=os.getenv))
     assert cache_module.default_cache_dir() == tmp_path / "xdg" / "ninelives"
     monkeypatch.delenv("XDG_CACHE_HOME")
     assert cache_module.default_cache_dir() == Path.home() / ".cache" / "ninelives"
     monkeypatch.setattr(cache_module.sys, "platform", "darwin")
     assert cache_module.default_cache_dir() == Path.home() / "Library" / "Caches" / "ninelives"
     monkeypatch.setattr(cache_module.sys, "platform", "linux")
-    monkeypatch.setattr(cache_module, "Path", type(tmp_path))
-    monkeypatch.setattr(cache_module.os, "name", "nt")
+    monkeypatch.setattr(cache_module, "os", SimpleNamespace(name="nt", getenv=os.getenv))
     monkeypatch.setenv("LOCALAPPDATA", str(tmp_path / "local"))
     assert cache_module.default_cache_dir() == tmp_path / "local" / "ninelives" / "Cache"
-    monkeypatch.setattr(cache_module.os, "name", "posix")
+    monkeypatch.setattr(cache_module, "os", real_os)
     assert cache_module._package_version("nonexistent-ninelives-test-package") is None
     assert cache_module._ttl_seconds("2h") == 7200
     assert cache_module._ttl_seconds(2) == 2
